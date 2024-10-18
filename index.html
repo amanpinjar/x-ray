@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X-ray Image Editor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <style>
+        #image-container {
+            width: 900px;
+            height: 9%;
+            border: 1px solid #ccc;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: crosshair;
+        }
+        #xray-image {
+            max-width: 100%;
+            max-height: 100%;
+            transform-origin: center;
+            transition: transform 0.2s;
+        }
+        .shape {
+            position: absolute;
+            background-color: transparent;
+        }
+        .controls {
+            margin: 20px 0;
+            color: white;
+        }
+        .path {
+            position: absolute;
+            stroke-width: 2px;
+            fill: none;
+        }
+    </style>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <h1 style="color: white;">ray Image Editor</h1>
+
+    <div class="controls">
+        <input type="file" id="file-input" accept="image/*">
+        <button  id="export-btn">Export</button>
+        <button  id="zoom-in-btn">Zoom In</button>
+        <button  id="zoom-out-btn">Zoom Out</button>
+        <i class="fa-solid fa-angle-left"><button  id="rotate-left-btn">Rotate Left</button></i> 
+        <i class="fa-solid fa-angle-right"><button  id="rotate-right-btn">Rotate Right</button></i>
+   <button  id="marker-btn">Add Marker</button>
+        <button  id="text-btn">Add Text</button>
+        <select id="draw-shape">
+            <option value="none">Select Shape</option>
+            <option value="line">Line</option>
+            <option value="circle">Circle</option>
+            <option value="rectangle">Rectangle</option>
+            <option value="square">Square</option>
+        </select>
+        <button id="undo-btn">Undo</button>
+        
+        <label for="color-picker">Choose Color:</label>
+        <input type="color" id="color-picker" value="#ff0000">
+
+        <label for="scale-slider">Scale:</label>
+        <input type="range" id="scale-slider" min="0.1" max="2" step="0.1" value="1">
+    </div>
+
+    <div id="image-container">
+        <img id="xray-image" src="" alt="X-ray Image">
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
