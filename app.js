@@ -1,216 +1,299 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const fileInput = document.getElementById('file-input');
-    const xrayImage = document.getElementById('xray-image');
-    const imageContainer = document.getElementById('image-container');
-    const zoomInBtn = document.getElementById('zoom-in-btn');
-    const zoomOutBtn = document.getElementById('zoom-out-btn');
-    const exportBtn = document.getElementById('export-btn');
-    const markerBtn = document.getElementById('marker-btn');
-    const textBtn = document.getElementById('text-btn');
-    const shapeSelector = document.getElementById('draw-shape');
-    const undoBtn = document.getElementById('undo-btn');
-    const colorPicker = document.getElementById('color-picker');
-    const rotateLeftBtn = document.getElementById('rotate-left-btn');
-    const rotateRightBtn = document.getElementById('rotate-right-btn');
-    const scaleSlider = document.getElementById('scale-slider');
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let drawing = false;
+let tool = 'line'; // For shape tools (line, rectangle, circle, square)
+let cursorTool = 'pen'; // For drawing tools (pen, pencil, marker, eraser)
+let startX, startY;
+let currentColor = '#000000';
+let currentLineWidth = 2;
+let importedImage = null;
+let imgX = 0, imgY = 0, imgWidth, imgHeight;
+let zoomLevel = 1; // Default zoom level
+const zoomStep = 0.1; // Step to zoom in/out
+let lastX = 0, lastY = 0; // For freehand drawing
+let strokes = []; // To store all freehand strokes and shapes
+let undoStack = []; // Stack for undo functionality
+let currentShape = null; // To store shape information
+let backgroundColor = '#FFFFFF'; // Assuming white canvas background color
 
-    let scale = 1;
-    let rotation = 0;
-    let addMarkerMode = false;
-    let addTextMode = false;
-    let drawShapeMode = null;
-    let isDrawing = false;
-    let startX, startY, shapeElement;
-    let currentPath = null;
-    const shapes = [];
-    let currentColor = colorPicker.value;
+canvas.addEventListener('mousedown', startDrawing);
+canvas.addEventListener('mousemove', draw);
+canvas.addEventListener('mouseup', stopDrawing);
+canvas.addEventListener('mouseout', stopDrawing);
 
-    // Import the image
-    fileInput.addEventListener('change', (event) => {
-        const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                xrayImage.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
+// Set the selected shape tool (line, rectangle, etc.)
+function setTool(selectedTool) {
+    tool = selectedTool;
+    cursorTool = 'shape'; // Set cursor tool for shapes
+}
+
+// Set the selected cursor tool (pen, pencil, marker, eraser, pointer)
+function setCursorTool(selectedTool) {
+    cursorTool = selectedTool;
+    if (cursorTool === 'pointer') {
+        canvas.style.cursor = 'default'; // Change to default pointer
+    } else {
+        canvas.style.cursor = 'crosshair'; // Crosshair for drawing tools
+    }
+}
+
+// Set the selected color
+function setColor(color) {
+    currentColor = color;
+}
+
+// Set the selected line width
+function setLineWidth(width) {
+    currentLineWidth = width;
+}
+
+// Start drawing on mouse down
+function startDrawing(e) {
+    if (cursorTool === 'pointer') return; // Do nothing if it's pointer mode
+    drawing = true;
+
+    startX = e.offsetX / zoomLevel;
+    startY = e.offsetY / zoomLevel;
+
+    lastX = startX;
+    lastY = startY;
+
+    if (cursorTool === 'pen' || cursorTool === 'pencil' || cursorTool === 'marker' || cursorTool === 'eraser') {
+        currentStroke = {
+            tool: cursorTool,
+            color: currentColor,
+            lineWidth: currentLineWidth,
+            points: [{ x: startX, y: startY }],
+        };
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+    } else if (cursorTool === 'shape') {
+        // Store initial shape data
+        currentShape = {
+            tool: tool, // line, rectangle, circle, square
+            startX: startX,
+            startY: startY,
+            color: currentColor,
+            lineWidth: currentLineWidth,
+        };
+    }
+}
+
+// Draw shapes or freehand lines dynamically while moving the mouse
+function draw(e) {
+    if (!drawing) return;
+
+    const endX = e.offsetX / zoomLevel;
+    const endY = e.offsetY / zoomLevel;
+
+    if (cursorTool === 'pen' || cursorTool === 'pencil' || cursorTool === 'marker') {
+        // Track points in current stroke
+        currentStroke.points.push({ x: endX, y: endY });
+        setDrawingStyles(cursorTool);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+        lastX = endX;
+        lastY = endY;
+    } else if (cursorTool === 'eraser') {
+        erase(endX, endY);
+    } else if (cursorTool === 'shape') {
+        // Clear and redraw the canvas to keep previous shapes intact
+        redrawCanvas();
+
+        // Set the drawing styles for shapes
+        ctx.strokeStyle = currentColor;
+        ctx.lineWidth = currentLineWidth;
+
+        // Draw the current shape dynamically based on tool selection
+        if (tool === 'line') {
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(endX, endY);
+            ctx.stroke();
+        } else if (tool === 'rectangle') {
+            ctx.strokeRect(startX, startY, endX - startX, endY - startY);
+        } else if (tool === 'circle') {
+            const radius = Math.sqrt(Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2));
+            ctx.beginPath();
+            ctx.arc(startX, startY, radius, 0, 2 * Math.PI);
+            ctx.stroke();
+        } else if (tool === 'square') {
+            const side = Math.min(Math.abs(endX - startX), Math.abs(endY - startY));
+            ctx.strokeRect(startX, startY, side, side);
         }
-    });
+    }
+}
 
-    // Zoom In
-    zoomInBtn.addEventListener('click', () => {
-        scale += 0.1;
-        updateTransform();
-    });
+// Stop drawing on mouse up or out
+function stopDrawing() {
+    if (!drawing) return;
 
-    // Zoom Out
-    zoomOutBtn.addEventListener('click', () => {
-        if (scale > 0.2) {
-            scale -= 0.1;
-            updateTransform();
-        }
-    });
+    if (cursorTool === 'shape') {
+        const endX = lastX;
+        const endY = lastY;
 
-    // Rotate Left
-    rotateLeftBtn.addEventListener('click', () => {
-        rotation -= 90;
-        updateTransform();
-    });
+        // Store the final shape in the strokes array
+        strokes.push({
+            tool: tool,
+            startX: currentShape.startX,
+            startY: currentShape.startY,
+            endX: endX,
+            endY: endY,
+            color: currentColor,
+            lineWidth: currentLineWidth,
+        });
 
-    // Rotate Right
-    rotateRightBtn.addEventListener('click', () => {
-        rotation += 90;
-        updateTransform();
-    });
-
-    // Handle Scale Slider
-    scaleSlider.addEventListener('input', (event) => {
-        scale = event.target.value;
-        updateTransform();
-    });
-
-    // Function to update the image transform (rotation and scale)
-    function updateTransform() {
-        xrayImage.style.transform = `scale(${scale}) rotate(${rotation}deg)`;
+        // Push the shape to the undo stack
+        undoStack.push([...strokes]);
+    } else if (drawing && currentStroke && cursorTool !== 'eraser') {
+        strokes.push(currentStroke); // Save the current stroke
+        undoStack.push([...strokes]); // Push the current state to undo stack
     }
 
-    // Select Marker Mode
-    markerBtn.addEventListener('click', () => {
-        addMarkerMode = true;
-        addTextMode = false;
-        drawShapeMode = null;
+    drawing = false;
+}
+
+// Erase function to remove points in freehand strokes
+function erase(endX, endY) {
+    strokes.forEach(stroke => {
+        if (stroke.tool !== 'pen' && stroke.tool !== 'pencil' && stroke.tool !== 'marker') return;
+
+        stroke.points = stroke.points.filter(point => {
+            const distance = Math.sqrt((point.x - endX) ** 2 + (point.y - endY) ** 2);
+            return distance > currentLineWidth; // Erase points within current line width radius
+        });
     });
 
-    // Select Text Mode
-    textBtn.addEventListener('click', () => {
-        addTextMode = true;
-        addMarkerMode = false;
-        drawShapeMode = null;
-    });
+    redrawCanvas();
+}
 
-    // Shape selection
-    shapeSelector.addEventListener('change', (event) => {
-        drawShapeMode = event.target.value;
-        addMarkerMode = false;
-        addTextMode = false;
-    });
+// Set styles based on cursor tool
+function setDrawingStyles(tool) {
+    if (tool === 'eraser') {
+        ctx.strokeStyle = backgroundColor; // Use background color to erase
+        ctx.lineWidth = currentLineWidth * 2; // Slightly larger for erasing
+        return;
+    }
+    ctx.strokeStyle = currentColor;
+    if (tool === 'pen') {
+        ctx.globalAlpha = 1.0;
+        ctx.lineWidth = currentLineWidth;
+    } else if (tool === 'pencil') {
+        ctx.globalAlpha = 0.6; // Lighter stroke for pencil
+        ctx.lineWidth = currentLineWidth / 2; // Thinner line
+    } else if (tool === 'marker') {
+        ctx.globalAlpha = 0.8;
+        ctx.lineWidth = currentLineWidth * 3; // Thicker line
+    }
+}
 
-    // Handle Color Change
-    colorPicker.addEventListener('input', (event) => {
-        currentColor = event.target.value;
-    });
+// Redraw the canvas content after erasing or zooming
+function redrawCanvas() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.save();
+    ctx.scale(zoomLevel, zoomLevel);
 
-    // Drawing Freehand with Marker (Lines and Curves)
-    imageContainer.addEventListener('mousedown', (event) => {
-        if (addMarkerMode) {
-            const rect = imageContainer.getBoundingClientRect();
-            startX = event.clientX - rect.left;
-            startY = event.clientY - rect.top;
-            isDrawing = true;
+    if (importedImage) {
+        ctx.drawImage(importedImage, imgX, imgY, imgWidth, imgHeight);
+    }
 
-            // Create an SVG element to draw the path
-            currentPath = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-            currentPath.style.position = "absolute";
-            currentPath.style.left = 0;
-            currentPath.style.top = 0;
-            currentPath.style.width = "100%";
-            currentPath.style.height = "100%";
-            imageContainer.appendChild(currentPath);
+    // Redraw all the saved strokes
+    strokes.forEach(stroke => {
+        ctx.strokeStyle = stroke.color;
+        ctx.lineWidth = stroke.lineWidth;
 
-            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-            path.classList.add('path');
-            path.setAttribute('d', `M ${startX} ${startY}`);
-            path.setAttribute('stroke', currentColor);
-            path.setAttribute('stroke-width', '2'); // Set stroke width
-            currentPath.appendChild(path);
-
-            shapes.push(currentPath);
-        } else if (addTextMode) {
-            // Add text on click
-            const rect = imageContainer.getBoundingClientRect();
-            const textX = event.clientX - rect.left;
-            const textY = event.clientY - rect.top;
-
-            const textElement = document.createElement('div');
-            textElement.contentEditable = true; // Make the text editable
-            textElement.style.position = 'absolute';
-            textElement.style.left = `${textX}px`;
-            textElement.style.top = `${textY}px`;
-            textElement.style.color = currentColor;
-            textElement.style.background = 'rgba(255, 255, 255, 0.7)'; // Semi-transparent background
-            textElement.style.padding = '2px';
-            textElement.style.border = '1px solid #ccc';
-            textElement.style.pointerEvents = 'auto'; // Ensure it's clickable
-            textElement.style.cursor = 'text'; // Cursor for text editing
-
-            imageContainer.appendChild(textElement);
+        if (stroke.tool === 'pen' || stroke.tool === 'pencil' || stroke.tool === 'marker') {
+            ctx.beginPath();
+            stroke.points.forEach((point, index) => {
+                if (index === 0) {
+                    ctx.moveTo(point.x, point.y);
+                } else {
+                    ctx.lineTo(point.x, point.y);
+                }
+            });
+            ctx.stroke();
+        } else if (stroke.tool === 'line') {
+            ctx.beginPath();
+            ctx.moveTo(stroke.startX, stroke.startY);
+            ctx.lineTo(stroke.endX, stroke.endY);
+            ctx.stroke();
+        } else if (stroke.tool === 'rectangle') {
+            ctx.strokeRect(stroke.startX, stroke.startY, stroke.endX - stroke.startX, stroke.endY - stroke.startY);
+        } else if (stroke.tool === 'circle') {
+            const radius = Math.sqrt(Math.pow(stroke.endX - stroke.startX, 2) + Math.pow(stroke.endY - stroke.startY, 2));
+            ctx.beginPath();
+            ctx.arc(stroke.startX, stroke.startY, radius, 0, 2 * Math.PI);
+            ctx.stroke();
+        } else if (stroke.tool === 'square') {
+            const side = Math.min(Math.abs(stroke.endX - stroke.startX), Math.abs(stroke.endY - stroke.startY));
+            ctx.strokeRect(stroke.startX, stroke.startY, side, side);
         }
     });
 
-    imageContainer.addEventListener('mousemove', (event) => {
-        if (isDrawing && addMarkerMode) {
-            const rect = imageContainer.getBoundingClientRect();
-            const currentX = event.clientX - rect.left;
-            const currentY = event.clientY - rect.top;
-            const path = currentPath.querySelector('path');
-            const d = path.getAttribute('d');
-            path.setAttribute('d', `${d} L ${currentX} ${currentY}`);  // Draw a line to the current point
-        }
-    });
+    ctx.restore();
+}
 
-    imageContainer.addEventListener('mouseup', () => {
-        isDrawing = false;
-    });
+// Undo functionality
+function undo() {
+    if (undoStack.length > 0) {
+        undoStack.pop(); // Remove the latest action
+        strokes = undoStack.length > 0 ? [...undoStack[undoStack.length - 1]] : []; // Restore the previous state
+        redrawCanvas(); // Redraw the canvas after undo
+    }
+}
 
-    // Undo Last Action
-    undoBtn.addEventListener('click', () => {
-        if (shapes.length > 0) {
-            const lastShape = shapes.pop();
-            if (lastShape) {
-                lastShape.remove();
+// Import image function
+document.getElementById('imageLoader').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        const img = new Image();
+        img.src = event.target.result;
+
+        img.onload = function() {
+            importedImage = img;
+            imgWidth = img.width;
+            imgHeight = img.height;
+
+            // Ensure the image fits the canvas
+            if (img.width > canvas.width || img.height > canvas.height) {
+                const scale = Math.min(canvas.width / img.width, canvas.height / img.height);
+                imgWidth = img.width * scale;
+                imgHeight = img.height * scale;
             }
-        }
-    });
 
-    // Export Image
-    exportBtn.addEventListener('click', () => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
+            redrawCanvas();
+        };
+    };
 
-        // Set canvas dimensions based on current scale
-        canvas.width = xrayImage.naturalWidth * scale;
-        canvas.height = xrayImage.naturalHeight * scale;
-
-        // Draw the X-ray image onto the canvas
-        ctx.scale(scale, scale);
-        ctx.drawImage(xrayImage, 0, 0);
-
-        // Draw shapes
-        shapes.forEach((svg) => {
-            const serializer = new XMLSerializer();
-            const svgString = serializer.serializeToString(svg);
-            const img = new Image();
-            img.onload = () => {
-                ctx.drawImage(img, 0, 0);
-            };
-            img.src = 'data:image/svg+xml;base64,' + btoa(svgString);
-        });
-
-        // Draw text elements
-        const textElements = imageContainer.querySelectorAll('div[contenteditable]');
-        textElements.forEach((textElement) => {
-            const textX = parseFloat(textElement.style.left) * scale; // Adjust for scale
-            const textY = parseFloat(textElement.style.top) * scale; // Adjust for scale
-            ctx.fillStyle = textElement.style.color;
-            ctx.fillText(textElement.innerText, textX, textY);
-        });
-
-        // Create download link
-        const link = document.createElement('a');
-        link.download = 'edited-xray.png';
-        canvas.toBlob((blob) => {
-            link.href = URL.createObjectURL(blob);
-            link.click();
-        }, 'image/png');
-    });
+    reader.readAsDataURL(file);
 });
+
+// Export the canvas image as a PNG file
+function exportImage() {
+    ctx.font = "20px Arial";
+    ctx.fillStyle = currentColor;
+    ctx.fillText("© Your Mark", canvas.width - 150, canvas.height - 20);
+
+    const dataURL = canvas.toDataURL('image/png');
+    const link = document.createElement('a');
+    link.href = dataURL;
+    link.download = 'drawing.png';
+    link.click();
+}
+
+// Zoom in function
+function zoomIn() {
+    zoomLevel += zoomStep;
+    redrawCanvas();
+}
+
+// Zoom out function
+function zoomOut() {
+    if (zoomLevel > zoomStep) {
+        zoomLevel -= zoomStep;
+        redrawCanvas();
+    }
+}
