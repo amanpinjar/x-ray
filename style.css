@@ -42,7 +42,37 @@ canvas {
 
 
 
+/* From Uiverse.io by adamgiebl */ 
 .button-33 {
+  background-color: #e0e0e0;
+  border-radius: 50px;
+  box-shadow: inset 4px 4px 10px #bcbcbc, inset -4px -4px 10px #ffffff;
+  color: #4d4d4d;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 1px 4px;
+  transition: all 0.2s ease-in-out;
+  border: 2px solid rgb(206, 206, 206);
+}
+
+.button-33:hover {
+  box-shadow: inset 2px 2px 5px #bcbcbc, inset -2px -2px 5px #ffffff, 2px 2px 5px #bcbcbc, -2px -2px 5px #ffffff;
+}
+
+.button-33:focus {
+  outline: none;
+  box-shadow: inset 2px 2px 5px #bcbcbc, inset -2px -2px 5px #ffffff, 2px 2px 5px #bcbcbc, -2px -2px 5px #ffffff;
+}
+
+
+
+
+
+
+
+
+
+/* .button-33 {
     position: relative;
     display: inline-block;
     padding: 12px 24px;
@@ -89,7 +119,7 @@ canvas {
     width: 150px;
     height: 150px;
     opacity: 1;
-  }
+  } */
   
   
   
