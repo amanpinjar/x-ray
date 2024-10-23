@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title></title>
+    <title>HSC Chiropractic </title>
+    <link rel="shortcut icon" href="img/hsc-logo.png" type="image/x-icon">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
 </head>
 <body>
-    <h1>AARXIN App</h1>
+    <a href="https://hscchiropractor.com/"><h1>HSC Chiropractic </h1></a>
     <div class="toolbar">
         <!-- Dropdown for shape selection -->
         <select class="button-33" id="shapeSelect" onchange="setTool(this.value)">
@@ -18,7 +20,7 @@
         </select>
 
         <!-- Dropdown for cursor tool selection -->
-        <select class="button-33" id="cursorToolSelect" onchange="setCursorTool(this.value)">
+        <select class="button-33" id="cursorToolSelect" onchange="setCursorTool(this.value)"><i class="fa-solid fa-shapes"></i>
             <option value="pen">Pen</option>
             <option value="pencil">Pencil</option>
             <option value="marker">Marker</option>
@@ -28,12 +30,12 @@
 
         <input class="button-33" type="color" id="colorPicker" value="#000000" onchange="setColor(this.value)">
         <input class="button-33" type="number" id="lineWidth" value="2" min="1" max="50" onchange="setLineWidth(this.value)">
-        <button class="button-33" onclick="cutShape()">Cut</button>
-        <button class="button-33" onclick="document.getElementById('imageLoader').click()">Import</button>
-        <button class="button-33" onclick="exportImage()">Export</button>
-        <button class="button-33" onclick="zoomIn()">Zoom In</button>
-        <button class="button-33" onclick="zoomOut()">Zoom Out</button>
-        <button class="button-33" onclick="undo()">Undo</button> <!-- Added Undo button -->
+        <button class="button-33" onclick="cutShape()"><i class="fa-solid fa-scissors"></i>  Cut</button>
+        <button class="button-33" onclick="document.getElementById('imageLoader').click()"><i class="fa-solid fa-file-import">  Import</i></button>
+        <button class="button-33" onclick="exportImage()"><i class="fa-solid fa-download">  Export</i></button>
+        <button class="button-33" onclick="zoomIn()"><i class="fa-solid fa-magnifying-glass-plus"></i> Zoom In</button>
+        <button class="button-33" onclick="zoomOut()"><i class="fa-solid fa-magnifying-glass-minus"></i> Zoom Out</button>
+        <button class="button-33" onclick="undo()"><i class="fa-solid fa-arrow-rotate-left"></i> Undo</button> 
     </div>
 
     <!-- Canvas for drawing -->

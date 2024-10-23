@@ -31,7 +31,8 @@ canvas {
 
 
 .toolbar{
-    background-color: rgb(23, 20, 20)
+    background-color: rgb(23, 20, 20);
+    border-radius: 40px;
     
 }
 
