@@ -1,46 +1,50 @@
 body {
-    font-family: Arial, sans-serif;
-    text-align: center;
-    margin-top: 20px;
-    background-color: rgb(45, 44, 44);
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: rgb(45, 44, 44);
+  display: flex;
+  height: 100vh;
 }
-h1{
-    color:antiquewhite ;
+
+h1 {
+  color: antiquewhite;
+}
+
+.container {
+  display: flex;
+  width: 100%;
+  height: 100%;
 }
 
 .toolbar {
-    margin-bottom: 10px;
-    padding: 30px;
+  background-color: rgb(23, 20, 20);
+  padding: 30px;
+  width: 10%;
+  height: 100%;
+  border-radius: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.canvas-container {
+  width: 80%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #2d2d2d;
 }
 
 canvas {
-    border: 2px solid #969393;
-    cursor: crosshair;
-    border-radius: 20px;
+  border: 2px solid #969393;
+  border-radius: 20px;
+  cursor: crosshair;
+  /* padding: 80px; */
+  width: 100%;
+    height: 90%;
 }
-
-
-/* canvas {
-    border: 2px solid #000;
-    cursor: crosshair;
-} */
-
-.canvas-eraser {
-    cursor: url('eraser-cursor.png'), auto; /* Optional custom eraser cursor */
-}
-
-
-.toolbar{
-    background-color: rgb(23, 20, 20);
-    border-radius: 40px;
-    
-}
-
-.shapeSelect{
-   color: rebeccapurple;
-}
-
-
 
 /* From Uiverse.io by adamgiebl */ 
 .button-33 {
@@ -50,9 +54,12 @@ canvas {
   color: #4d4d4d;
   cursor: pointer;
   font-size: 14px;
-  padding: 1px 4px;
+  padding: 8px 16px; /* Adjust padding for better sizing */
   transition: all 0.2s ease-in-out;
   border: 2px solid rgb(206, 206, 206);
+  margin: 10px 0; /* Space between buttons (top and bottom) */
+  width: 150px; /* Set a fixed width for all buttons */
+  text-align: center; /* Ensure text is centered */
 }
 
 .button-33:hover {
@@ -72,54 +79,4 @@ canvas {
 
 
 
-/* .button-33 {
-    position: relative;
-    display: inline-block;
-    padding: 12px 24px;
-    border: none;
-    font-size: 16px;
-    background-color: inherit;
-    border-radius: 100px;
-    font-weight: 600;
-    color: #ffffff40;
-    box-shadow: 0 0 0 2px #ffffff20;
-    cursor: pointer;
-    overflow: hidden;
-    transition: all 0.6s cubic-bezier(0.23, 1, 0.320, 1);
-  }
-  
-  .button-33 span:last-child {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 20px;
-    height: 20px;
-    background-color: #2196F3;
-    border-radius: 50%;
-    opacity: 0;
-    transition: all 0.8s cubic-bezier(0.23, 1, 0.320, 1);
-  }
-  
-  .button-33 span:first-child {
-    position: relative;
-    z-index: 1;
-  }
-  
-  .button-33:hover {
-    box-shadow: 0 0 0 5px #0fbd3860;
-    color: #ffffff;
-  }
-  
-  .button-33:active {
-    scale: 0.95;
-  }
-  
-  .button-33:hover span:last-child {
-    width: 150px;
-    height: 150px;
-    opacity: 1;
-  } */
-  
-  
-  
+

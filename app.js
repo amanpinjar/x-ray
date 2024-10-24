@@ -477,3 +477,5 @@ document.getElementById('imageLoader').addEventListener('change', function(e) {
 
     reader.readAsDataURL(file);
 });
+
+
